@@ -14,11 +14,11 @@ This document utilizes one **Los Angeles** instance of a **2 CPU / 4096MB Memory
 
 ## Configure DNS
 
-Add DNS `A` records for your domain, such as: **gitlab.apk8s.dev** and ***.gitlab.apk8s.dev**, pointed to the public IP address of the [Vultr] instance above. See your Domain Name / DNS provider for instructions on adding `A` records.
+Add DNS `A` records for your domain, such as: **gitlab.apk8s.dev** and ***.gitlab.apk8s.dev** pointed to the public IP address of the [Vultr] instance above. See your Domain Name / DNS provider for instructions on adding `A` records.
 
 ## Prepare Server
 
-Login to the new server (IP) as the root user.
+Login to the new server (IP) as the root user:
 
 ```bash
 ssh root@NEW_SERVER_IP
@@ -75,7 +75,7 @@ cat /etc/rancher/k3s/k3s.yaml
 The `k3s.yaml` is a Kubernetes config file used by `kubectl` and contains (1) one cluster, (3) one user and a (2) context that ties them together. `kubectl` uses [contexts] to determine the cluster you wish to connect to and use for access credentials. The `current-context` section is the name of the context currently selected with the `kubectl config use-context` command.
 
 
-![](diagrams/k3s-yaml.jpg)
+![k3s.yml](https://raw.githubusercontent.com/apk8s/k3s-gitlab/master/diagrams/k3s-yaml.jpg)
 
 Ensure that [kubectl] is installed on your local workstation.
 
@@ -87,7 +87,7 @@ If you already have clusters, user and contexts in your `~/.kube/config` you can
 
 Another option is to create another file such as `~/.kube/gitlab-config` and set the **KUBECONFIG** environment variable to point to it. Read more about `kubectl` [configuration options][contexts].
 
-![](diagrams/kubectl-config.jpg)
+![kubectl config](https://raw.githubusercontent.com/apk8s/k3s-gitlab/master/diagrams/kubectl-config.jpg)
 
 Before you being configuring [k3s] make sure `kubectl` pointed to the correct cluster: 
 
@@ -95,29 +95,29 @@ Before you being configuring [k3s] make sure `kubectl` pointed to the correct cl
 kubectl config use-context gitlab-admin
 ```
 
-Ensure that you are able to communicate with the new [k3s] cluster by requesting a list of nodes:
+Ensure that you can communicate with the new [k3s] cluster by requesting a list of nodes:
 
 ```bash
 kubectl get nodes
 ```
 
-If successful you should get output similar to the following:
+If successful, you should get output similar to the following:
 
 ```bash
 NAME               STATUS   ROLES    AGE    VERSION
 gitlab.apk8s.dev   Ready    <none>   171m   v1.14.1-k3s.4
 ```
 
-## Install Cert Manager / [Let's Encrypt]
+## Install [Cert Manager] / [Let's Encrypt]
 
-[Gitlab] ships with [Let's Encrypt] capabilities, however since we are running Gitlab through [k3s] (Kubernetes) Ingress (using [Traefik],) we need to generate Certs and provide TLS from the cluster. 
+[Gitlab] ships with [Let's Encrypt] capabilities, however, since we are running Gitlab through [k3s] (Kubernetes) [Ingress] (using [Traefik],) we need to generate Certs and provide TLS from the cluster. 
 
 Create Cert Manager's Custom Resource Definitions: 
 ```bash
 kubectl apply -f https://raw.githubusercontent.com/jetstack/cert-manager/release-0.8/deploy/manifests/00-crds.yaml
 ```
 
-Install [Cert Manager] with the [./k8s/0000-global/001-cert-manager-helm.yml] manifest (the [k3s] way):
+Install [Cert Manager] with the [./k8s/0000-global/001-cert-manager-helm.yml](./k8s/0000-global/001-cert-manager-helm.yml) manifest (the [k3s] way):
 
 ```bash
 kubectl create -f ./k8s/0000-global/001-cert-manager-helm.yml 
@@ -152,7 +152,7 @@ replicaset.apps/cert-manager-webhook-6484955794     1         1         1       
 
 Add a [ClusterIssuer] to handle the generation of Certs cluster-wide:
 
-***NOTE:** First edit `./k8s/0000-global/005-clusterissuer.yml` and replace **YOUR_EMAIL_ADDRESS** with your email address.
+***NOTE:** First edit [./k8s/0000-global/005-clusterissuer.yml](./k8s/0000-global/005-clusterissuer.yml) and replace **YOUR_EMAIL_ADDRESS** with your email address.
 
 ```bash
 kubectl apply -f ./k8s/0000-global/005-clusterissuer.yml 
@@ -160,11 +160,15 @@ kubectl apply -f ./k8s/0000-global/005-clusterissuer.yml
 
 ## Install Gitlab
 
-Create the namespace `gitlab`:
+### Namespace
+
+[./k8s/1000-gitlab/0000-global/000-namespace.yml](./k8s/1000-gitlab/0000-global/000-namespace.yml) creates the [Namespace] `gitlab`:
 
 ```bash
 kubectl apply -f ./k8s/1000-gitlab/0000-global/000-namespace.yml
 ```
+
+### TLS Certificate
 
 Generate a TLS Certificate (first edit [./k8s/1000-gitlab/0000-global/010-certs.yml](./k8s/1000-gitlab/0000-global/010-certs.yml) and replace **apk8s.dev** with your domain):
 
@@ -172,7 +176,99 @@ Generate a TLS Certificate (first edit [./k8s/1000-gitlab/0000-global/010-certs.
 kubectl apply -f ./k8s/1000-gitlab/0000-global/010-certs.yml
 ```
 
+### Services
 
+[./k8s/1000-gitlab/100-gitlab/10-service.yml](./k8s/1000-gitlab/100-gitlab/10-service.yml) creates two **[Services]**. Service **gitlab** provides a backend service for [Ingress] to serve the Gitlab web UI. Service **gitlab-tcp** exposes port **32222** for interacting with Gitlab over ssh for operations such as git clone, push and pull. The Gitlab hosted container registry uses port **30505**.
+
+```bash
+kubectl apply -f ./k8s/1000-gitlab/100-gitlab/10-service.yml
+```
+
+### Deployment
+
+[./k8s/1000-gitlab/100-gitlab/40-deployment.yml](./k8s/1000-gitlab/100-gitlab/40-deployment.yml) creates a Gitlab **[Deployment]**.
+
+```bash
+kubectl apply -f ./k8s/1000-gitlab/100-gitlab/40-deployment.yml
+```
+
+The Gitlab deployment launches a single [Pod] creating and mounting the directory `/srv/gitlab/` on the new server for the persistent storage for configuration, logs, data (Git repos,) containers (registry) and uploads.
+
+```yaml
+        - name: config-volume
+          hostPath:
+            path: /srv/gitlab/config
+        - name: logs-volume
+          hostPath:
+            path: /srv/gitlab/logs
+        - name: data-volume
+          hostPath:
+            path: /srv/gitlab/data
+        - name: reg-volume
+          hostPath:
+            path: /srv/gitlab/reg
+        - name: uploads-volume
+          hostPath:
+            path: /srv/gitlab/uploads
+```
+
+### Configure Gitlab
+
+Gitlab may take a minute or more to boot. Once Gitlab is running locate the newly generated config file gitlab.rb on the server at `/srv/gitlab/config/gitlab.rb`. 
+
+Edit the `gitlab.rb` file and replace the following lines.
+
+Configure the **external_url**. The true external URL is **https** provided by the [Traefik] [Ingress], however, if https is defined here, Gitlab attempts to provide its own TLS service. Although in this case, Gitlab generates non-https links, [Traefik] [Ingress] is set to redirect to secure https endpoints.
+```ruby
+# external_url 'GENERATED_EXTERNAL_URL'
+```
+```ruby
+external_url 'http://gitlab.apk8s.dev'
+```
+
+Configure the ssh port used for `git`. This is defined in the file [./k8s/1000-gitlab/100-gitlab/10-service.yml](k8s/1000-gitlab/100-gitlab/10-service.yml) under the port named **tcp-git**.
+
+```ruby
+# gitlab_rails['gitlab_shell_ssh_port'] = 22
+```
+```ruby
+gitlab_rails['gitlab_shell_ssh_port'] = 32222
+```
+
+Configure the ssh port used for the container registry. The file [./k8s/1000-gitlab/100-gitlab/10-service.yml](k8s/1000-gitlab/100-gitlab/10-service.yml) defines this port named **tcp-tcp**.
+
+```ruby
+# gitlab_rails['registry_enabled'] = true
+# gitlab_rails['registry_host'] = "registry.gitlab.example.com"
+# gitlab_rails['registry_port'] = "5005"
+```
+
+```ruby
+gitlab_rails['registry_enabled'] = true
+gitlab_rails['registry_host'] = "reg.gitlab.apk8s.dev"
+gitlab_rails['registry_port'] = "30505"
+```
+
+### Ingress
+
+The Kubernetes [Ingress] manifest [./k8s/1000-gitlab/100-gitlab/50-ingress.yml](./k8s/1000-gitlab/100-gitlab/50-ingress.yml) sets up [Traefik] to direct requests to the host **gitlab.apk8s.dev** to backend [Service] named **gitlab**.
+
+```bash
+kubectl apply -f ./k8s/1000-gitlab/100-gitlab/50-ingress.yml
+```
+
+Browse to https://gitlab.apk8s.dev (replace top-level domain with your domain). **NOTE:** New [Gitlab] installs present a screen to set the admin (**root**) user's password. **Do this immediately** to prevent someone else from setting up Gitlab for you. 
+
+It is possible to provide a Gitlab configuration file pre-populated with the customizations made earlier, including a pre-defined root password. However, letting Gitlab install a generic configuration on first boot simplifies to process and ensures the configuration file matches the version of Gitlab from the container image specified in the Kubernetes Deployment.
+
+Remember to keep the directory `/srv/gitlab` on the server backed up. 
+ 
+
+[Pod]: https://kubernetes.io/docs/concepts/workloads/pods/pod/
+[Deployment]: https://kubernetes.io/docs/concepts/workloads/controllers/deployment/
+[Ingress]: https://kubernetes.io/docs/concepts/services-networking/ingress/
+[Namespace]: https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/
+[Services]: https://kubernetes.io/docs/concepts/services-networking/service/
 [Let's Encrypt]: https://letsencrypt.org/
 [ClusterIssuer]: https://docs.cert-manager.io/en/latest/tasks/issuers/
 [Traefik]:https://traefik.io/

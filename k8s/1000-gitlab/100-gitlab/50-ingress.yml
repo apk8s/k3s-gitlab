@@ -1,0 +1,23 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: gitlab
+  namespace: gitlab
+  labels:
+    app: gitlab
+  annotations:
+    traefik.ingress.kubernetes.io/redirect-entry-point: https
+    traefik.ingress.kubernetes.io/preserve-host: "true"
+spec:
+  rules:
+    - host: gitlab.apk8s.dev
+      http:
+        paths:
+          - backend:
+              serviceName: gitlab
+              servicePort: 80
+            path: /
+  tls:
+    - hosts:
+        - gitlab.apk8s.dev
+      secretName: gitlab-apk8s-tls

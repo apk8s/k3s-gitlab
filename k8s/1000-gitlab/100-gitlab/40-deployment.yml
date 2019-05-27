@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: gitlab
+  name: gitlab
+  labels:
+    app: gitlab
+spec:
+  replicas: 1
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      app: gitlab
+  template:
+    metadata:
+      labels:
+        app: gitlab
+    spec:
+      containers:
+        - name: gitlab
+          image: gitlab/gitlab-ce:11.10.4-ce.0
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - name: config-volume
+              mountPath: /etc/gitlab
+            - name: logs-volume
+              mountPath: /var/log/gitlab
+            - name: data-volume
+              mountPath: /var/opt/gitlab
+            - name: reg-volume
+              mountPath: /var/opt/gitlab/gitlab-rails/shared/registry
+            - name: uploads-volume
+              mountPath: /var/opt/gitlab/gitlab-rails/uploads
+          ports:
+            - name: http-web
+              containerPort: 80
+            - name: tcp-ssh
+              containerPort: 22
+      volumes:
+        - name: config-volume
+          hostPath:
+            path: /srv/gitlab/config
+        - name: logs-volume
+          hostPath:
+            path: /srv/gitlab/logs
+        - name: data-volume
+          hostPath:
+            path: /srv/gitlab/data
+        - name: reg-volume
+          hostPath:
+            path: /srv/gitlab/reg
+        - name: uploads-volume
+          hostPath:
+            path: /srv/gitlab/uploads
