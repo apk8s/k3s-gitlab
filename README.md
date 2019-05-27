@@ -1,8 +1,8 @@
 # k3s + Gitlab
 
-**Work in progress.**
+This document outlines the steps for utilizing [k3s] to manage a self-hosted [Gitlab] instance. This may be beneficial for individuals and organizations already leveraging [Kubernetes] for platform development. Many applications such as [Gitlab] do not need sophisticated compute clusters to operate, yet [k3s] allows us to achieve additional continuity in the management of development operations. [k3s], although slim-down, is a fully functional [Kubernetes]. 
 
-Utilizing [k3s] to manage a self-hosted [Gitlab] instance is for individuals and organizations already leveraging [Kubernetes] for platform development. Many applications such as [Gitlab] do not need sophisticated compute clusters to operate, yet [k3s] allows us to achieve continuity in the management of all development operations. [k3s], although slim-down, is a fully functional [Kubernetes]. Containers have made applications like [Gitlab] incredibly portable, [Kubernetes] brings that portability to container management and [k3s] makes that portability available at the smallest of scale.
+Containers have made applications like [Gitlab] incredibly portable, [Kubernetes] brings that portability to container management and [k3s] makes that portability available at the smallest of scale.
 
 This document outlines a process for setting up a Gitlab instance in a single custom node Kubernetes ([k3s]) cluster on [Vultr].  However, there is very little difference in utilizing other vendors, such as [Digital Ocean] or [Linode].
 
@@ -267,7 +267,7 @@ kubectl apply -f ./k8s/1000-gitlab/100-gitlab/50-ingress.yml
 
 Browse to https://gitlab.apk8s.dev (replace top-level domain with your domain). **NOTE:** New [Gitlab] installs present a screen to set the admin (**root**) user's password. **Do this immediately** to prevent someone else from setting up Gitlab for you. 
 
-It is possible to provide a Gitlab configuration file pre-populated with the customizations made earlier, including a pre-defined root password. However, letting Gitlab install a generic configuration on first boot simplifies to process and ensures the configuration file matches the version of Gitlab from the container image specified in the Kubernetes Deployment.
+It is possible to provide a Gitlab configuration file pre-populated with the customizations made earlier, including a pre-defined root password. However, letting Gitlab install a generic configuration on first boot simplifies the process and ensures that the configuration file matches the version of Gitlab from the container image specified in the Kubernetes Deployment.
 
 Remember to keep the directory `/srv/gitlab` on the server backed up. 
  
