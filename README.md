@@ -1,5 +1,7 @@
 # k3s Gitlab
 
+**Work in progress.**
+
 Utilizing [k3s] to manage a self-hosted [Gitlab] instance is for individuals and organizations already leveraging [Kubernetes] for development and production platform development. Many applications such as [Gitlab] do not need sophisticated compute clusters to operate, yet [k3s] allows us to achieve continuity in the management of all development operations. [k3s], although slim-down is a fully functional [Kubernetes]. Containers have made applications like [Gitlab] incredibly portable, [Kubernetes] brings that portability to container management and [k3s] makes that portability available at smallest of scale.
 
 This document outlines a process for setting up a Gitlab instance in a single custom node Kubernetes ([k3s]) cluster on [Vultr].  However, there is very little difference in utilizing other vendors, such as [Digital Ocean] or [Linode].
