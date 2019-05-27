@@ -31,9 +31,4 @@ spec:
       targetPort: 22
       port: 32222
       nodePort: 32222
-    - name: tcp-reg
-      protocol: "TCP"
-      targetPort: 30505
-      port: 30505
-      nodePort: 30505
   type: NodePort

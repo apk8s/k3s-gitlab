@@ -36,6 +36,8 @@ spec:
               containerPort: 80
             - name: tcp-ssh
               containerPort: 22
+            - name: http-reg
+              containerPort: 5000
       volumes:
         - name: config-volume
           hostPath:

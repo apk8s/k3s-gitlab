@@ -186,7 +186,7 @@ kubectl apply -f ./k8s/1000-gitlab/0000-global/010-certs.yml
 
 ### Services
 
-[./k8s/1000-gitlab/100-gitlab/10-service.yml](./k8s/1000-gitlab/100-gitlab/10-service.yml) creates two **[Services]**. Service **gitlab** provides a backend service for [Ingress] to serve the Gitlab web UI. Service **gitlab-tcp** exposes port **32222** for interacting with Gitlab over ssh for operations such as git clone, push and pull. The Gitlab hosted container registry uses port **30505**.
+[./k8s/1000-gitlab/100-gitlab/10-service.yml](./k8s/1000-gitlab/100-gitlab/10-service.yml) creates two **[Services]**. Service **gitlab** provides a backend service for [Ingress] to serve the Gitlab web UI. Service **gitlab-tcp** exposes port **32222** for interacting with Gitlab over ssh for operations such as git clone, push and pull.
 
 ```bash
 kubectl apply -f ./k8s/1000-gitlab/100-gitlab/10-service.yml
@@ -200,7 +200,7 @@ kubectl apply -f ./k8s/1000-gitlab/100-gitlab/10-service.yml
 kubectl apply -f ./k8s/1000-gitlab/100-gitlab/40-deployment.yml
 ```
 
-The Gitlab deployment launches a single [Pod] creating and mounting the directory `/srv/gitlab/` on the new server for the persistent storage for configuration, logs, data (Git repos,) containers (registry) and uploads.
+The Gitlab deployment launches a single [Pod] creating and mounting the directory `/srv/gitlab/` on the new server for the persistent storage for configuration, logs, and data (Git repos.) containers (registry) and uploads.
 
 ```yaml
         - name: config-volume
@@ -234,6 +234,16 @@ Configure the **external_url**. The true external URL is **https** provided by t
 external_url 'http://gitlab.apk8s.dev'
 ```
 
+Gitlab ships with it's own Prometheus server, we will not use it to
+monitor the [k3s] cluster:
+
+```ruby
+# prometheus['monitor_kubernetes'] = true
+```
+```ruby
+prometheus['monitor_kubernetes'] = false
+```
+
 Configure the ssh port used for `git`. This is defined in the file [./k8s/1000-gitlab/100-gitlab/10-service.yml](k8s/1000-gitlab/100-gitlab/10-service.yml) under the port named **tcp-git**.
 
 ```ruby
@@ -241,20 +251,6 @@ Configure the ssh port used for `git`. This is defined in the file [./k8s/1000-g
 ```
 ```ruby
 gitlab_rails['gitlab_shell_ssh_port'] = 32222
-```
-
-Configure the ssh port used for the container registry. The file [./k8s/1000-gitlab/100-gitlab/10-service.yml](k8s/1000-gitlab/100-gitlab/10-service.yml) defines this port named **tcp-tcp**.
-
-```ruby
-# gitlab_rails['registry_enabled'] = true
-# gitlab_rails['registry_host'] = "registry.gitlab.example.com"
-# gitlab_rails['registry_port'] = "5005"
-```
-
-```ruby
-gitlab_rails['registry_enabled'] = true
-gitlab_rails['registry_host'] = "reg.gitlab.apk8s.dev"
-gitlab_rails['registry_port'] = "30505"
 ```
 
 ### Ingress
