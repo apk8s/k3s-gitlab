@@ -1,0 +1,9 @@
+apiVersion: k3s.cattle.io/v1
+kind: HelmChart
+metadata:
+  namespace: kube-system
+  name: cert-manager
+spec:
+  chart: cert-manager
+  repo: https://charts.jetstack.io
+  targetNamespace: cert-manager
