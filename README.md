@@ -12,6 +12,14 @@ This document outlines a process for setting up a Gitlab instance in a single cu
 
 This document utilizes one **Los Angeles** instance of a **2 CPU / 4096MB Memory** **[Ubuntu 18.04] x64** server on [Vultr] with Private Networking enabled and a "Server Hostname & Label" of **gitlab.apk8s.dev**. At the time of this writing, the instance cost is $20/mo, or 3 cents per hour.
 
+![Server Location](https://github.com/apk8s/k3s-gitlab/blob/master/assets/v01-server-location.png?raw=true)
+
+![Server Type](https://github.com/apk8s/k3s-gitlab/blob/master/assets/v02-server-type.png?raw=true)
+
+![Server Size](https://github.com/apk8s/k3s-gitlab/blob/master/assets/v03-server-size.png?raw=true)
+
+![Server Hostname](https://github.com/apk8s/k3s-gitlab/blob/master/assets/v04-server-hostname.png?raw=true)
+
 ## Configure DNS
 
 Add DNS `A` records for your domain, such as: **gitlab.apk8s.dev** and ***.gitlab.apk8s.dev** pointed to the public IP address of the [Vultr] instance above. See your Domain Name / DNS provider for instructions on adding `A` records.
