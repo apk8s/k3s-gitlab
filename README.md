@@ -1,8 +1,8 @@
-# k3s Gitlab
+# k3s + Gitlab
 
 **Work in progress.**
 
-Utilizing [k3s] to manage a self-hosted [Gitlab] instance is for individuals and organizations already leveraging [Kubernetes] for development and production platform development. Many applications such as [Gitlab] do not need sophisticated compute clusters to operate, yet [k3s] allows us to achieve continuity in the management of all development operations. [k3s], although slim-down is a fully functional [Kubernetes]. Containers have made applications like [Gitlab] incredibly portable, [Kubernetes] brings that portability to container management and [k3s] makes that portability available at smallest of scale.
+Utilizing [k3s] to manage a self-hosted [Gitlab] instance is for individuals and organizations already leveraging [Kubernetes] for platform development. Many applications such as [Gitlab] do not need sophisticated compute clusters to operate, yet [k3s] allows us to achieve continuity in the management of all development operations. [k3s], although slim-down, is a fully functional [Kubernetes]. Containers have made applications like [Gitlab] incredibly portable, [Kubernetes] brings that portability to container management and [k3s] makes that portability available at the smallest of scale.
 
 This document outlines a process for setting up a Gitlab instance in a single custom node Kubernetes ([k3s]) cluster on [Vultr].  However, there is very little difference in utilizing other vendors, such as [Digital Ocean] or [Linode].
 
@@ -14,14 +14,14 @@ This document utilizes one **Los Angeles** instance of a **2 CPU / 4096MB Memory
 
 ## Configure DNS
 
-DNS `A` records are added **gitlab.apk8s.dev** and ***.gitlab.apk8s.dev** and pointed to the public IP address of the [Vultr] instance. See you DNS provider for instructions for adding `A` records.
+Add DNS `A` records for your domain, such as: **gitlab.apk8s.dev** and ***.gitlab.apk8s.dev**, pointed to the public IP address of the [Vultr] instance above. See your Domain Name / DNS provider for instructions on adding `A` records.
 
 ## Prepare Server
 
 Login to the new server (IP) as the root user.
 
 ```bash
-ssh root@IP
+ssh root@NEW_SERVER_IP
 ```
 
 Upgrade any outdated packages:
@@ -38,7 +38,7 @@ apt update && apt upgrade -y
 curl -sfL https://get.k3s.io | sh -
 ```
 
-[k3s] is now installed and the [Kubernetes] API is listening on the public IP of the server on port **6443**. 
+[k3s] is now installed and the [Kubernetes] API is listening on the public IP of the server through port **6443**. 
 
 ## Remote Access with `kubectl`
 
@@ -108,7 +108,9 @@ NAME               STATUS   ROLES    AGE    VERSION
 gitlab.apk8s.dev   Ready    <none>   171m   v1.14.1-k3s.4
 ```
 
-## Install Cert Manager
+## Install Cert Manager / [Let's Encrypt]
+
+[Gitlab] ships with [Let's Encrypt] capabilities, however since we are running Gitlab through [k3s] (Kubernetes) Ingress (using [Traefik],) we need to generate Certs and provide TLS from the cluster. 
 
 Create Cert Manager's Custom Resource Definitions: 
 ```bash
@@ -126,7 +128,29 @@ Ensure that cert manager is now running:
 kubectl get all -n cert-manager
 ```
 
-Add a Cluster Issuer to handle the generation of Certs cluster-wide:
+Output:
+```plain
+NAME                                          READY   STATUS    RESTARTS   AGE
+pod/cert-manager-5d669ffbd8-2s6pm             1/1     Running   0          5m11s
+pod/cert-manager-cainjector-79b7fc64f-n9qdt   1/1     Running   0          5m11s
+pod/cert-manager-webhook-6484955794-j6cpr     1/1     Running   0          5m11s
+
+NAME                           TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)   AGE
+service/cert-manager-webhook   ClusterIP   10.43.103.18   <none>        443/TCP   5m11s
+
+NAME                                      READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/cert-manager              1/1     1            1           5m11s
+deployment.apps/cert-manager-cainjector   1/1     1            1           5m11s
+deployment.apps/cert-manager-webhook      1/1     1            1           5m11s
+
+NAME                                                DESIRED   CURRENT   READY   AGE
+replicaset.apps/cert-manager-5d669ffbd8             1         1         1       5m11s
+replicaset.apps/cert-manager-cainjector-79b7fc64f   1         1         1       5m11s
+replicaset.apps/cert-manager-webhook-6484955794     1         1         1       5m11s
+```
+
+
+Add a [ClusterIssuer] to handle the generation of Certs cluster-wide:
 
 ***NOTE:** First edit `./k8s/0000-global/005-clusterissuer.yml` and replace **YOUR_EMAIL_ADDRESS** with your email address.
 
@@ -134,8 +158,24 @@ Add a Cluster Issuer to handle the generation of Certs cluster-wide:
 kubectl apply -f ./k8s/0000-global/005-clusterissuer.yml 
 ```
 
+## Install Gitlab
+
+Create the namespace `gitlab`:
+
+```bash
+kubectl apply -f ./k8s/1000-gitlab/0000-global/000-namespace.yml
+```
+
+Generate a TLS Certificate (first edit [./k8s/1000-gitlab/0000-global/010-certs.yml](./k8s/1000-gitlab/0000-global/010-certs.yml) and replace **apk8s.dev** with your domain):
+
+```bash
+kubectl apply -f ./k8s/1000-gitlab/0000-global/010-certs.yml
+```
 
 
+[Let's Encrypt]: https://letsencrypt.org/
+[ClusterIssuer]: https://docs.cert-manager.io/en/latest/tasks/issuers/
+[Traefik]:https://traefik.io/
 [Cert Manager]: 
 [./k8s/0000-global/001-cert-manager-helm.yml]:./k8s/0000-global/001-cert-manager-helm.yml
 [contexts]: https://kubernetes.io/docs/tasks/access-application-cluster/configure-access-multiple-clusters/
