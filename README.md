@@ -108,8 +108,36 @@ NAME               STATUS   ROLES    AGE    VERSION
 gitlab.apk8s.dev   Ready    <none>   171m   v1.14.1-k3s.4
 ```
 
+## Install Cert Manager
+
+Create Cert Manager's Custom Resource Definitions: 
+```bash
+kubectl apply -f https://raw.githubusercontent.com/jetstack/cert-manager/release-0.8/deploy/manifests/00-crds.yaml
+```
+
+Install [Cert Manager] with the [./k8s/0000-global/001-cert-manager-helm.yml] manifest (the [k3s] way):
+
+```bash
+kubectl create -f ./k8s/0000-global/001-cert-manager-helm.yml 
+```
+
+Ensure that cert manager is now running:
+```bash
+kubectl get all -n cert-manager
+```
+
+Add a Cluster Issuer to handle the generation of Certs cluster-wide:
+
+***NOTE:** First edit `./k8s/0000-global/005-clusterissuer.yml` and replace **YOUR_EMAIL_ADDRESS** with your email address.
+
+```bash
+kubectl apply -f ./k8s/0000-global/005-clusterissuer.yml 
+```
 
 
+
+[Cert Manager]: 
+[./k8s/0000-global/001-cert-manager-helm.yml]:./k8s/0000-global/001-cert-manager-helm.yml
 [contexts]: https://kubernetes.io/docs/tasks/access-application-cluster/configure-access-multiple-clusters/
 [kubectl]: https://kubernetes.io/docs/tasks/tools/install-kubectl/
 [k3s]: https://k3s.io/
