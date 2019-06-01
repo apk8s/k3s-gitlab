@@ -170,18 +170,18 @@ kubectl apply -f ./k8s/0000-global/005-clusterissuer.yml
 
 ### Namespace
 
-[./k8s/1000-gitlab/0000-global/000-namespace.yml](./k8s/1000-gitlab/0000-global/000-namespace.yml) creates the [Namespace] `gitlab`:
+[./k8s/1000-gitlab/000-namespace/000-namespace.yml](./k8s/1000-gitlab/000-namespace/000-namespace.yml) creates the [Namespace] `gitlab`:
 
 ```bash
-kubectl apply -f ./k8s/1000-gitlab/0000-global/000-namespace.yml
+kubectl apply -f ./k8s/1000-gitlab/000-namespace/000-namespace.yml
 ```
 
 ### TLS Certificate
 
-Generate a TLS Certificate (first edit [./k8s/1000-gitlab/0000-global/010-certs.yml](./k8s/1000-gitlab/0000-global/010-certs.yml) and replace **apk8s.dev** with your domain):
+Generate a TLS Certificate (first edit [./k8s/1000-gitlab/000-namespace/010-certs.yml](./k8s/1000-gitlab/000-namespace/010-certs.yml) and replace **apk8s.dev** with your domain):
 
 ```bash
-kubectl apply -f ./k8s/1000-gitlab/0000-global/010-certs.yml
+kubectl apply -f ./k8s/1000-gitlab/000-namespace/010-certs.yml
 ```
 
 ### Services
