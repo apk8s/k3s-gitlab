@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: echo
+  namespace: apk8s
+spec:
+  type: NodePort
+  ports:
+    - name: tcp
+      port: 30001
+      targetPort: 1025
+      protocol: TCP
+      nodePort: 30001
+  selector:
+    app: echo

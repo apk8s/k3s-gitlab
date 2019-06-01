@@ -13,6 +13,10 @@ spec:
       protocol: "TCP"
       port: 80
       targetPort: 80
+    - name: http-reg
+      protocol: "TCP"
+      port: 5050
+      targetPort: 5050
   type: ClusterIP
 ---
 apiVersion: v1

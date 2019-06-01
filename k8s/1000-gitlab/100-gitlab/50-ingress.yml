@@ -7,7 +7,6 @@ metadata:
     app: gitlab
   annotations:
     traefik.ingress.kubernetes.io/redirect-entry-point: https
-    traefik.ingress.kubernetes.io/preserve-host: "true"
 spec:
   rules:
     - host: gitlab.apk8s.dev
@@ -17,7 +16,15 @@ spec:
               serviceName: gitlab
               servicePort: 80
             path: /
+    - host: reg.gitlab.apk8s.dev
+      http:
+        paths:
+          - backend:
+              serviceName: gitlab
+              servicePort: 5050
+            path: /
   tls:
     - hosts:
+        - reg.gitlab.apk8s.dev
         - gitlab.apk8s.dev
       secretName: gitlab-apk8s-tls

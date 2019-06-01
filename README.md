@@ -224,33 +224,34 @@ The Gitlab deployment launches a single [Pod] creating and mounting the director
 
 Gitlab may take a minute or more to boot. Once Gitlab is running locate the newly generated config file gitlab.rb on the server at `/srv/gitlab/config/gitlab.rb`. 
 
-Edit the `gitlab.rb` file and replace the following lines.
+The initial `gitlab.rb` file is commented out sample configuration so you may simply back it up and add a new file with the following:
 
-Configure the **external_url**. The true external URL is **https** provided by the [Traefik] [Ingress], however, if https is defined here, Gitlab attempts to provide its own TLS service. Although in this case, Gitlab generates non-https links, [Traefik] [Ingress] is set to redirect to secure https endpoints.
-```ruby
-# external_url 'GENERATED_EXTERNAL_URL'
-```
-```ruby
-external_url 'http://gitlab.apk8s.dev'
-```
-
-Gitlab ships with it's own Prometheus server, we will not use it to
-monitor the [k3s] cluster:
+Replace **.apk8s.dev** with your domain.
 
 ```ruby
-# prometheus['monitor_kubernetes'] = true
-```
-```ruby
-prometheus['monitor_kubernetes'] = false
-```
+external_url 'https://gitlab.apk8s.dev'
 
-Configure the ssh port used for `git`. This is defined in the file [./k8s/1000-gitlab/100-gitlab/10-service.yml](k8s/1000-gitlab/100-gitlab/10-service.yml) under the port named **tcp-git**.
+nginx['listen_port'] = 80
+nginx['listen_https'] = false
+nginx['proxy_set_headers'] = {
+  'X-Forwarded-Proto' => 'https',
+  'X-Forwarded-Ssl' => 'on'
+}
 
-```ruby
-# gitlab_rails['gitlab_shell_ssh_port'] = 22
-```
-```ruby
 gitlab_rails['gitlab_shell_ssh_port'] = 32222
+
+registry_external_url 'https://reg.gitlab.apk8s.dev'
+
+gitlab_rails['registry_enabled'] = true
+
+registry_nginx['listen_port'] = 5050
+registry_nginx['listen_https'] = false
+registry_nginx['proxy_set_headers'] = {
+  'X-Forwarded-Proto' => 'https',
+  'X-Forwarded-Ssl' => 'on'
+}
+
+prometheus['monitor_kubernetes'] = false
 ```
 
 ### Ingress
