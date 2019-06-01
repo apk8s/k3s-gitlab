@@ -261,9 +261,11 @@ The Kubernetes [Ingress] manifest [./k8s/1000-gitlab/100-gitlab/50-ingress.yml](
 kubectl apply -f ./k8s/1000-gitlab/100-gitlab/50-ingress.yml
 ```
 
+## Login
+
 Browse to https://gitlab.apk8s.dev (replace top-level domain with your domain). **NOTE:** New [Gitlab] installs present a screen to set the admin (**root**) user's password. **Do this immediately** to prevent someone else from setting up Gitlab for you. 
 
-It is possible to provide a Gitlab configuration file pre-populated with the customizations made earlier, including a pre-defined root password. However, letting Gitlab install a generic configuration on first boot simplifies the process and ensures that the configuration file matches the version of Gitlab from the container image specified in the Kubernetes Deployment.
+## Note
 
 Remember to keep the directory `/srv/gitlab` on the server backed up. 
  
@@ -272,6 +274,7 @@ Remember to keep the directory `/srv/gitlab` on the server backed up.
 [Deployment]: https://kubernetes.io/docs/concepts/workloads/controllers/deployment/
 [Ingress]: https://kubernetes.io/docs/concepts/services-networking/ingress/
 [Namespace]: https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/
+[Service]: https://kubernetes.io/docs/concepts/services-networking/service/
 [Services]: https://kubernetes.io/docs/concepts/services-networking/service/
 [Let's Encrypt]: https://letsencrypt.org/
 [ClusterIssuer]: https://docs.cert-manager.io/en/latest/tasks/issuers/
