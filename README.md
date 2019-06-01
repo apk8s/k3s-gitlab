@@ -224,10 +224,9 @@ The Gitlab deployment launches a single [Pod] creating and mounting the director
 
 Gitlab may take a minute or more to boot. Once Gitlab is running locate the newly generated config file gitlab.rb on the server at `/srv/gitlab/config/gitlab.rb`. 
 
-The initial `gitlab.rb` file is commented out sample configuration so you may simply back it up and add a new file with the following:
+The initial `gitlab.rb` file is commented out sample configuration so you may simply back it up and add a new file with the following. Replace **.apk8s.dev** with your domain.
 
-Replace **.apk8s.dev** with your domain.
-
+`/srv/gitlab/config/gitlab.rb`:
 ```ruby
 external_url 'https://gitlab.apk8s.dev'
 
